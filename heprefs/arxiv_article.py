@@ -1,14 +1,17 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import re
 import arxiv
+import feedparser
 
-class ArxivArticle:
+class ArxivArticle(object):
     SERVER = 'https://arxiv.org'
+    API = 'http://export.arxiv.org/api/query'
 
     @classmethod
     def get_info(cls, arxiv_id):
         # Code from arxiv.py https://github.com/lukasschwab/arxiv.py
-        results = arxiv.feedparser.parse(arxiv.root_url + 'query?id_list=' + arxiv_id)
+        query_url = '{}?id_list={}'.format(cls.API, arxiv_id)
+        results = feedparser.parse(query_url)
         if results.get('status') != 200:
             raise Exception("Failed to fetch arXiv article information: HTTP Error " + str(results.get('status', 'no status')))
 
