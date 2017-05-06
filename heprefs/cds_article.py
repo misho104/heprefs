@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import re
 import sys
 import json
+import heprefs.invenio as invenio
 try:
     from urllib2 import urlopen, Request, HTTPError
 except ImportError:
@@ -11,9 +12,10 @@ except ImportError:
 
 class CDSArticle(object):
     API = 'https://cds.cern.ch/search'
+    RECORD_PATH = 'http://cds.cern.ch/record/'
     ARXIV_SERVER = 'https://arxiv.org'
     DOI_SERVER = 'https://dx.doi.org'
-    DATA_KEY = "primary_report_number,system_control_number,authors,title,abstract,publication_info,files"
+    DATA_KEY = "primary_report_number,recid,system_control_number,authors,corporate_name,title,abstract,publication_info,files"
 
     LIKELY_PATTERNS = [
         r'^[A-Za-z-]+-\d{4}-\d{3}$',
@@ -60,38 +62,80 @@ class CDSArticle(object):
     def info(self):
         if not self._info:
             self._info = self.get_info(self.query)
-            self._info['authors_plain'] = ['{first_name} {last_name}'.format(**a) for a in self._info['authors']]
         return self._info
 
-    def report_number(self):
-        return self.info['primary_report_number']
-
-    def inspire_abs_url(self):
-        return
-
     def abs_url(self):
-        pass # return '{}/{}'.format(self.DOI_SERVER, self.doi)
+        # type: () -> str
+        if 'doi' in self.info:
+            return '{}/{}'.format(self.DOI_SERVER, self.info['doi'])
+
+        arxiv_id = invenio.arxiv_id(self.info)
+        if arxiv_id:
+            return '{}/abs/{}'.format(self.ARXIV_SERVER, arxiv_id)
+
+        if 'recid' in self.info:
+            return self.RECORD_PATH + str(self.info['recid'])
+
+        return ''
 
     def pdf_url(self):
-        pass #
+        # type: () -> str
+        arxiv_id = invenio.arxiv_id(self.info)
+        if arxiv_id:
+            return '{}/pdf/{}'.format(self.ARXIV_SERVER, arxiv_id)
+
+        pdf_files = [i for i in self.info.get('files', []) if i['superformat'] == '.pdf']
+        if pdf_files:
+            print('Note: Fulltext PDF file is guessed by its size. (among {} files)'.format(len(pdf_files)))
+            pdf_files.sort(key=lambda i: int(i.get('size', 0)), reverse=True)
+            return pdf_files[0].get('url', '')
+
+        return ''
 
     def title(self):
-        return self.info['title']['title']
+        # type: () -> str
+        return invenio.title(self.info)
 
     def authors(self):
-        return ', '.join(self.info['authors_plain'])
+        # type: () -> str
+        return ', '.join(invenio.flatten_authors(self.info))
 
     def first_author(self):
-        return self.info['authors_plain'][0]
+        # type: () -> str
+        a = self.authors()
+        return a[0] if len(a) > 0 else ''
 
-    def authors_short(self):
-        authors = [self.shorten_author(a) for a in self.info['authors']]
-        if len(authors) > 4:
-            authors = authors[0:4] + ['etal']
-        return '-'.join(authors)
+    def publication_info(self):
+        # type: () -> str
+        return invenio.publication_info_text(self.info)
 
     def download_parameters(self):
-        pass
-        #if self.arxiv_id() and self.pdf_url():
-        #    filename = '{id}-{authors}.pdf'.format(id=self.arxiv_id(), authors=self.authors_short())
-        #    return self.pdf_url(), filename
+        # type: () -> (str, str)
+        if not self.pdf_url():
+            return ''
+
+        arxiv_id = invenio.arxiv_id(self.info)
+        primary_report_number = invenio.primary_report_number(self.info)
+        file_title = \
+            arxiv_id if arxiv_id else \
+            primary_report_number if primary_report_number else \
+            self.info['doi'] if 'doi' in self.info else \
+            'unknown'
+
+        if self.pdf_url():
+            filename = '{title}-{names}.pdf'.format(title=file_title, names=invenio.shorten_authors_text(self.info))
+            return self.pdf_url(), filename
+
+    def debug(self):
+        data = {
+            'abs_url': self.abs_url(),
+            'pdf_url': self.pdf_url(),
+            'title': self.title(),
+            'authors': self.authors(),
+            'first_author': self.first_author(),
+            'publication_info': self.publication_info(),
+            '(download_filename)': self.download_parameters()[1],
+            '(collaborations)': invenio.collaborations(self.info)
+        }
+        for k, v in data.items():
+            print('{}: {}'.format(k, v))

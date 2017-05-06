@@ -96,3 +96,15 @@ class ArxivArticle(object):
     def download_parameters(self):
         filename = '{id}-{authors}.pdf'.format(id=self.arxiv_id, authors=self.authors_short())
         return (self.info['pdf_url'], filename)
+
+    def debug(self):
+        data = {
+            'abs_url': self.abs_url(),
+            'pdf_url': self.pdf_url(),
+            'title': self.title(),
+            'authors': self.authors(),
+            'first_author': self.first_author(),
+            '(download_filename)': self.download_parameters()[1],
+        }
+        for k, v in data.items():
+            print('{}: {}'.format(k, v))

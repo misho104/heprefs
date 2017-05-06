@@ -105,3 +105,9 @@ def get(article):
         except AttributeError:
             from urllib import request
             request.urlretrieve(pdf_url, filename, reporthook=lambda b, c, t: bar.update(c/t))
+
+
+@heprefs_subcommand(help_msg='display information')
+@with_article
+def debug(article):
+    article.debug()
