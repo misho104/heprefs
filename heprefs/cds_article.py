@@ -106,7 +106,11 @@ class CDSArticle(object):
 
     def authors(self):
         # type: () -> str
-        return ', '.join(invenio.flatten_authors(self.info))
+        collaborations_list = invenio.collaborations(self.info)
+        if collaborations_list:
+            return ', '.join([c + ' (collaboration)' for c in collaborations_list])
+        else:
+            return ', '.join(invenio.flatten_authors(self.info))
 
     def first_author(self):
         # type: () -> str
