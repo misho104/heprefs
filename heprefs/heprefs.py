@@ -56,9 +56,9 @@ def heprefs_subcommand(help_msg):
 
 
 def with_article(func):
-    def decorator(key, type):
+    def decorator(key, type, **kwargs):
         article = construct_article(key, type)
-        func(article)
+        func(article, **kwargs)
     decorator.__name__ = func.__name__
     return decorator
 
@@ -84,19 +84,25 @@ def first_author(article):
 @heprefs_subcommand(help_msg='Open abstract page with Browser')
 @with_article
 def abs(article):
-    click.launch(article.abs_url())
+    url = article.abs_url()
+    click.echo("Opening {} ...".format(url))
+    click.launch(url)
 
 
 @heprefs_subcommand(help_msg='Open PDF with Browser')
 @with_article
 def pdf(article):
-    click.launch(article.pdf_url())
+    url = article.pdf_url()
+    click.echo("Opening {} ...".format(url))
+    click.launch(url)
 
 
 @heprefs_subcommand(help_msg='Download PDF file')
+@click.option('-o', '--open', is_flag=True, default=False, help="Open PDF file by viewer")
 @with_article
-def get(article):
+def get(article, open):
     (pdf_url, filename) = article.download_parameters()
+    click.echo("Downloading {} ...".format(pdf_url))
 
     with click.progressbar(length=1, label=filename) as bar:
         try:
@@ -105,6 +111,8 @@ def get(article):
         except AttributeError:
             from urllib import request
             request.urlretrieve(pdf_url, filename, reporthook=lambda b, c, t: bar.update(c/t))
+    if open:
+        click.launch(filename)
 
 
 @heprefs_subcommand(help_msg='display information')

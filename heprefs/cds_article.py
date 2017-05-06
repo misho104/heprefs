@@ -4,10 +4,11 @@ import sys
 import json
 import heprefs.invenio as invenio
 try:
+    from urllib import quote_plus
     from urllib2 import urlopen, Request, HTTPError
 except ImportError:
+    from urllib.parse import quote_plus
     from urllib.request import urlopen, Request
-    from urllib.error import HTTPError
 
 
 class CDSArticle(object):
@@ -15,7 +16,8 @@ class CDSArticle(object):
     RECORD_PATH = 'http://cds.cern.ch/record/'
     ARXIV_SERVER = 'https://arxiv.org'
     DOI_SERVER = 'https://dx.doi.org'
-    DATA_KEY = "primary_report_number,recid,system_control_number,authors,corporate_name,title,abstract,publication_info,files"
+    DATA_KEY = "primary_report_number,recid,system_control_number," + \
+               "authors,corporate_name,title,abstract,publication_info,files"
 
     LIKELY_PATTERNS = [
         r'^[A-Za-z-]+-\d{4}-\d{3}$',
@@ -23,7 +25,7 @@ class CDSArticle(object):
 
     @classmethod
     def get_info(cls, query):
-        query_url = '{}?p={}&of=recjson&ot={}'.format(cls.API, query, cls.DATA_KEY)
+        query_url = '{}?p={}&of=recjson&ot={}&rg=3'.format(cls.API, quote_plus(query), cls.DATA_KEY)
         try:
             f = urlopen(query_url)  # "with" does not work on python2
             s = f.read()
@@ -37,7 +39,12 @@ class CDSArticle(object):
         if (not isinstance(results, list)) or len(results) == 0:
             raise Exception('query {} to CDS gives no result: '.format(query))
         if len(results) > 1:
-            print('Warning: more than one entries are found')
+            print('Warning: more than one entries are found, whose titles are')
+            for i in results:
+                title = i.get('title', dict()).get('title') or 'unknown ' + i.get('primary_report_number')
+                print('    ' + title)
+            print()
+
         result = results[0]
 
         return result
@@ -86,7 +93,8 @@ class CDSArticle(object):
 
         pdf_files = [i for i in self.info.get('files', []) if i['superformat'] == '.pdf']
         if pdf_files:
-            print('Note: Fulltext PDF file is guessed by its size. (among {} files)'.format(len(pdf_files)))
+            if len(pdf_files) > 1:
+                print('Note: Fulltext PDF file is guessed by its size.')
             pdf_files.sort(key=lambda i: int(i.get('size', 0)), reverse=True)
             return pdf_files[0].get('url', '')
 
@@ -111,7 +119,8 @@ class CDSArticle(object):
 
     def download_parameters(self):
         # type: () -> (str, str)
-        if not self.pdf_url():
+        url = self.pdf_url()
+        if not url:
             return ''
 
         arxiv_id = invenio.arxiv_id(self.info)
@@ -122,9 +131,8 @@ class CDSArticle(object):
             self.info['doi'] if 'doi' in self.info else \
             'unknown'
 
-        if self.pdf_url():
-            filename = '{title}-{names}.pdf'.format(title=file_title, names=invenio.shorten_authors_text(self.info))
-            return self.pdf_url(), filename
+        filename = '{title}-{names}.pdf'.format(title=file_title, names=invenio.shorten_authors_text(self.info))
+        return url, filename
 
     def debug(self):
         data = {

@@ -3,40 +3,70 @@
 """
 
 import re
+import sys
+if sys.version_info[0] < 3:
+    str = basestring
+
+
+def normalize_authors(json):
+    # type: (dict) -> list
+    authors = json.get('authors') or list()
+    if not isinstance(authors, list):
+        authors = [authors]
+
+    authors_normal = list()
+    collaborations_mode = False
+    for i in authors:
+        if i is None or 'full_name' not in i:
+            continue
+
+        if re.search(r'on behalf', i['full_name'], flags=re.IGNORECASE):
+            break  # anything after 'on behalf of' is ignored.
+
+        if re.search(r'collaborations ', i['full_name'], flags=re.IGNORECASE):
+            # if no personal name is given, list collaboration names only
+            if len(authors_normal) == 0:
+                collaborations_mode = True
+            if collaborations_mode:
+                authors_normal.append(i)
+        else:
+            if not collaborations_mode:
+                authors_normal.append(i)
+
+    return authors_normal
 
 
 def flatten_author(a):
     # type: (dict) -> str
     if a.get('first_name') and a.get('last_name'):
-        return '{first_name} {last_name}'.format(**a)
+        return u'{first_name} {last_name}'.format(**a)
     elif a.get('full_name'):
         return a['full_name'] or ''
     else:
-        print('Note: how to handle the author name?: {}'.format(a.__str__()))
+        print(u'Note: how to handle the author name?: {}'.format(a.__str__()))
         return ''
 
 
 def flatten_authors(json):
     # type: (dict) -> list
-    authors = json.get('authors') or list()
-    return [flatten_author(a) for a in authors]
+    return [flatten_author(a) for a in normalize_authors(json)]
 
 
 def shorten_author(a):
     # type: (dict) -> str
     if a.get('last_name'):
-        return a['last_name'].replace('-', '')
+        return a['last_name'].replace('-', '').replace(' ', '')
     elif a.get('full_name'):
-        return re.split(r', ', a['full_name'])[0].replace('-', '')
+        tmp = re.sub(r'on behalf of.*', '', a['full_name'], flags=re.IGNORECASE)
+        return re.split(r', ', tmp)[0].replace('-', '')
     else:
-        print('Note: how to handle the author name?: {}'.format(a.__str__()))
+        print(u'Note: how to handle the author name?: {}'.format(a.__str__()))
         return ''
 
 
 def shorten_authors(json):
     # type: (dict) -> list
-    authors = json.get('authors') or list()
-    return [shorten_author(a) for a in authors]
+    return [shorten_author(a) for a in normalize_authors(json)]
 
 
 def collaborations(json):
@@ -48,9 +78,7 @@ def collaborations(json):
     collaborations_list = list()
     for i in corporate_name:
         for k, v in i.items():
-            if k == 'collaboration':
-                collaborations_list.append(v)
-            elif k == 'name':
+            if k == 'collaboration' or k == 'name':
                 v = re.sub(r'the', '', v, flags=re.IGNORECASE)
                 v = re.sub(r'collaboration', '', v, flags=re.IGNORECASE)
                 collaborations_list.append(v.strip())
@@ -97,13 +125,13 @@ def arxiv_id(json):
     # type: (dict) -> str
     if 'primary_report_number' not in json:
         return ''
-    report_numbers = json['primary_report_number']
+    report_numbers = json['primary_report_number'] or []
     if isinstance(report_numbers, str):
         report_numbers = list(report_numbers)
 
     arxiv_ids = list()
     for i in report_numbers:
-        arxiv_pattern = re.match(r'^arXiv:(.*)$', i)
+        arxiv_pattern = re.match(r'^arXiv:(.*)$', i or '')
         if arxiv_pattern:
             arxiv_ids.append(arxiv_pattern.group(1))
     if len(arxiv_ids) > 1:
@@ -122,5 +150,7 @@ def primary_report_number(json):
             return arxiv_id(json)
         else:
             return json['primary_report_number'][0]
+    elif json['primary_report_number'] is None:
+        return ''
     else:
         raise ValueError('primary_report_number is in unknown format: ' + json['primary_report_number'].__str__())

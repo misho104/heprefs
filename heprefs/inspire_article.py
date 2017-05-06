@@ -4,10 +4,11 @@ import sys
 import json
 import heprefs.invenio as invenio
 try:
+    from urllib import quote_plus
     from urllib2 import urlopen, Request, HTTPError
 except ImportError:
+    from urllib.parse import quote_plus
     from urllib.request import urlopen, Request
-    from urllib.error import HTTPError
 
 
 class InspireArticle(object):
@@ -15,7 +16,8 @@ class InspireArticle(object):
     RECORD_PATH = 'http://inspirehep.net/record/'
     ARXIV_SERVER = 'https://arxiv.org'
     DOI_SERVER = 'https://dx.doi.org'
-    DATA_KEY = "primary_report_number,recid,system_control_number,authors,corporate_name,title,abstract,publication_info,files"
+    DATA_KEY = "primary_report_number,recid,system_control_number," + \
+               "authors,corporate_name,title,abstract,publication_info,files"
 
     LIKELY_PATTERNS = [
         r'^(doi:)?10\.\d{4,}/.*$',  # doi
@@ -24,7 +26,7 @@ class InspireArticle(object):
 
     @classmethod
     def get_info(cls, query):
-        query_url = '{}?p={}&of=recjson&ot={}'.format(cls.API, query, cls.DATA_KEY)
+        query_url = '{}?p={}&of=recjson&ot={}&rg=3'.format(cls.API, quote_plus(query), cls.DATA_KEY)
         try:
             f = urlopen(query_url)  # "with" does not work on python2
             s = f.read()
@@ -38,9 +40,13 @@ class InspireArticle(object):
         if (not isinstance(results, list)) or len(results) == 0:
             raise Exception('query {} to inspireHEP gives no result: '.format(query))
         if len(results) > 1:
-            print('Warning: more than one entries are found')
-        result = results[0]
+            print('Warning: more than one entries are found, whose titles are')
+            for i in results:
+                title = i.get('title', dict()).get('title') or 'unknown ' + i.get('primary_report_number')
+                print('    ' + title)
+            print()
 
+        result = results[0]
         return result
 
     @classmethod
@@ -80,6 +86,7 @@ class InspireArticle(object):
         return ''
 
     def pdf_url(self):
+        # type: () -> str
         scoap3_url = [i['url'] for i in self.info.get('files', []) if i['full_name'] == 'scoap3-fulltext.pdf']
         if scoap3_url:
             return scoap3_url[0]
@@ -90,7 +97,8 @@ class InspireArticle(object):
 
         pdf_files = [i for i in self.info.get('files', []) if i['superformat'] == '.pdf']
         if pdf_files:
-            print('Note: Fulltext PDF file is guessed by its size. (among {} files)'.format(len(pdf_files)))
+            if len(pdf_files) > 1:
+                print('Note: Fulltext PDF file is guessed by its size.')
             pdf_files.sort(key=lambda i: int(i.get('size', 0)), reverse=True)
             return pdf_files[0].get('url', '')
 
@@ -111,8 +119,11 @@ class InspireArticle(object):
 
     def texkey(self):
         # type: () -> str
-        if 'system_control_number' in self.info:
-            texkeys = [i['value'] for i in self.info['system_control_number'] if i['institute'] == 'INSPIRETeX']
+        scn = self.info.get('system_control_number')
+        if scn:
+            if isinstance(scn, dict):
+                scn = [scn]
+            texkeys = [i['value'] for i in scn if i['institute'] == 'INSPIRETeX']
             if len(texkeys) > 1:
                 print('Note: multiple TeXkeys are found? : ' + ' & '.join(texkeys))
             return texkeys[0] if texkeys else ''
@@ -124,7 +135,8 @@ class InspireArticle(object):
 
     def download_parameters(self):
         # type: () -> (str, str)
-        if not self.pdf_url():
+        url = self.pdf_url()
+        if not url:
             return ''
 
         arxiv_id = invenio.arxiv_id(self.info)
@@ -135,9 +147,8 @@ class InspireArticle(object):
             self.info['doi'] if 'doi' in self.info else \
             'unknown'
 
-        if self.pdf_url():
-            filename = '{title}-{names}.pdf'.format(title=file_title, names=invenio.shorten_authors_text(self.info))
-            return self.pdf_url(), filename
+        filename = '{title}-{names}.pdf'.format(title=file_title, names=invenio.shorten_authors_text(self.info))
+        return url, filename
 
     def debug(self):
         data = {

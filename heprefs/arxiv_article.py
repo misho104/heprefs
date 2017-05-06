@@ -3,9 +3,12 @@ import re
 import arxiv
 import feedparser
 
+
 class ArxivArticle(object):
     SERVER = 'https://arxiv.org'
     API = 'http://export.arxiv.org/api/query'
+
+    OLD_FORMAT_DEFAULT = 'hep-ph'
 
     @classmethod
     def get_info(cls, arxiv_id):
@@ -19,7 +22,11 @@ class ArxivArticle(object):
            or 'id' not in results['entries'][0]:  # because arXiv api returns one blank entry even if nothing found
             raise Exception('arXiv:{} not found'.format(arxiv_id))
         elif len(results['entries']) > 1:
-            print('Warning: more than one entries are found')
+            print('Warning: more than one entries are found, whose titles are')
+            for i in results:
+                title = i.get('title', dict()).get('title') or 'unknown ' + i.get('primary_report_number')
+                print('    ' + title)
+            print()
 
         result = results['entries'][0]
         arxiv.mod_query_result(result)
@@ -34,12 +41,12 @@ class ArxivArticle(object):
     @classmethod
     def try_to_construct(cls, key, force=False):
         try:
-            object = cls(key)
+            obj = cls(key)
         except ValueError as e:
             if force:
                 raise e
             return False
-        return object
+        return obj
 
     def __init__(self, arxiv_id):
         self._arxiv_id = None
@@ -53,6 +60,7 @@ class ArxivArticle(object):
     @arxiv_id.setter
     def arxiv_id(self, i):
         new_style = re.match(r'^(\d{4})\.(\d{4,5})$', i)
+        old_style = re.match('^([a-zA-Z.-]+/)?\d{7}$', i)
         if new_style:
             (first, second) = (new_style.group(1), new_style.group(2))
             if int(first) >= 1500:
@@ -61,8 +69,8 @@ class ArxivArticle(object):
                 self._arxiv_id = i
             else:
                 raise ValueError('incorrect arXiv id')
-        elif re.match('^[a-zA-Z.-]+/\d{7}$', i):
-            self._arxiv_id = i
+        elif old_style:
+            self._arxiv_id = i if old_style.group(1) else self.OLD_FORMAT_DEFAULT + '/' + i
         else:
             raise ValueError('incorrect arXiv id')
 
@@ -95,7 +103,7 @@ class ArxivArticle(object):
 
     def download_parameters(self):
         filename = '{id}-{authors}.pdf'.format(id=self.arxiv_id, authors=self.authors_short())
-        return (self.info['pdf_url'], filename)
+        return self.info['pdf_url'], filename
 
     def debug(self):
         data = {
