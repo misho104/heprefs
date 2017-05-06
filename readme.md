@@ -55,7 +55,7 @@ $ heprefs abs 9709356                  # equivalent to 'hep-ph/9709356'
 
 PDF may not be found for CDS or inspireHEP queries.
 
-```
+```console
 $ heprefs pdf 1505.02996               # arXiv
 $ heprefs pdf ATLAS-CONF-2017-018      # CERN Document Server
 
@@ -65,11 +65,9 @@ $ heprefs get "fin a Ellis"            # inspireHEP (first result)
 $ heprefs get -o "fin a Giudice"       # open the PDF file
 ```
 
-#### Show informations
+#### Show information
 
-PDF may not be found for CDS or inspireHEP queries.
-
-```
+```console
 $ heprefs authors 1505.02996
 $ heprefs first_author hep-th/9711200
 $ heprefs title 10.1038/nphys3005
