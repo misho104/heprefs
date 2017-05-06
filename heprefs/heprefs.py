@@ -97,6 +97,16 @@ def pdf(article):
     click.launch(url)
 
 
+@heprefs_subcommand(help_msg='display short information of the article')
+@with_article
+def short_info(article):
+    click.echo(u"{authors}\n{title}\n{abs_url}".format(
+        authors=article.authors(),
+        title=article.title(),
+        abs_url=article.abs_url(),
+    ))
+
+
 @heprefs_subcommand(help_msg='Download PDF file')
 @click.option('-o', '--open', is_flag=True, default=False, help="Open PDF file by viewer")
 @with_article
