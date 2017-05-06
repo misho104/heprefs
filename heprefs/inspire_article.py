@@ -9,17 +9,20 @@ except ImportError:
     from urllib.error import HTTPError
 
 
-class DOIArticle(object):
-    DOI_SERVER = 'https://dx.doi.org'
+class InspireArticle(object):
+    API = 'https://inspirehep.net/search'
     ARXIV_SERVER = 'https://arxiv.org'
-    INSPIRE_API = 'https://inspirehep.net/search'
+    DOI_SERVER = 'https://dx.doi.org'
     DATA_KEY = "primary_report_number,system_control_number,authors,title,abstract,publication_info"
 
-    @classmethod
-    def get_info(cls, doi):
-        # use inspireHEP to get information
+    LIKELY_PATTERNS = [
+        r'^(doi:)?10\.\d{4,}/.*$',  # doi
+        r'^find? .+',               # old spires style
+    ]
 
-        query_url = '{}?p={}&of=recjson&ot={}'.format(cls.INSPIRE_API, doi, cls.DATA_KEY)
+    @classmethod
+    def get_info(cls, query):
+        query_url = '{}?p={}&of=recjson&ot={}'.format(cls.API, query, cls.DATA_KEY)
         try:
             f = urlopen(query_url)  # "with" does not work on python2
             s = f.read()
@@ -29,9 +32,9 @@ class DOIArticle(object):
         try:
             results = json.loads(s.decode("utf-8"))
         except Exception as e:
-            raise Exception('parse failed; maybe doi {} not found in inspireHEP: '.format(doi) + e.__str__())
+            raise Exception('parse failed; query {} to inspireHEP gives no result?: '.format(query) + e.__str__())
         if (not isinstance(results, list)) or len(results) == 0:
-            raise Exception('doi {} not found in inspireHEP: '.format(doi))
+            raise Exception('query {} to inspireHEP gives no result: '.format(query))
         if len(results) > 1:
             print('Warning: more than one entries are found')
         result = results[0]
@@ -44,36 +47,20 @@ class DOIArticle(object):
         return family_name.replace('-', '')
 
     @classmethod
-    def try_to_construct(cls, key, force=False):
-        try:
-            obj = cls(key)
-        except ValueError as e:
-            if force:
-                raise e
-            return False
-        return obj
+    def try_to_construct(cls, query, force=False):
+        if not force:
+            if not any(re.match(r, query) for r in cls.LIKELY_PATTERNS):
+                return False
+        return cls(query)
 
-    def __init__(self, doi):
-        self._doi = None
-        self.doi = doi
+    def __init__(self, query):
+        self.query = query
         self._info = None
-
-    @property
-    def doi(self):
-        return self._doi
-
-    @doi.setter
-    def doi(self, i):
-        doi_style = re.match(r'^(doi:)?(10\.\d{4,}/.*)$', i)
-        if doi_style:
-            self._doi = doi_style.group(2)
-        else:
-            raise ValueError('incorrect doi')
 
     @property
     def info(self):
         if not self._info:
-            self._info = self.get_info(self.doi)
+            self._info = self.get_info(self.query)
 
             self._info['arXiv'] = None
             for i in self._info["primary_report_number"]:

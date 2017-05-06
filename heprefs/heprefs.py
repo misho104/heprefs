@@ -6,14 +6,14 @@ import sys
 from collections import OrderedDict
 from heprefs.arxiv_article import ArxivArticle
 from heprefs.cds_article import CDSArticle
-from heprefs.doi_article import DOIArticle
+from heprefs.inspire_article import InspireArticle
 
 
 __version__ = "0.1.0"
 types = OrderedDict([
     ('arxiv', ArxivArticle),
     ('cds', CDSArticle),
-    ('doi', DOIArticle),
+    ('ins', InspireArticle),
 ])
 
 
@@ -46,7 +46,7 @@ def heprefs_main(**args):
 def heprefs_subcommand(help_msg):
     d1 = heprefs_main.command(help=help_msg)
     d2 = click.option('-t', '--type',
-                      type=click.Choice(['arxiv', 'cds', 'doi']),
+                      type=click.Choice(types.keys()),
                       help="Specify article type (guessed if unspecified)")
     d3 = click.argument('key', required=True)
 
