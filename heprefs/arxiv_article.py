@@ -32,10 +32,12 @@ class ArxivArticle(object):
         return family_name.replace('-', '')
 
     @classmethod
-    def try_to_construct(cls, key):
+    def try_to_construct(cls, key, force=False):
         try:
             object = cls(key)
-        except ValueError:
+        except ValueError as e:
+            if force:
+                raise e
             return False
         return object
 

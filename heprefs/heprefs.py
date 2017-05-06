@@ -20,13 +20,15 @@ types = OrderedDict([
 def construct_article(key, type=None):
     if type in types.keys():
         classes = [types[type]]
+        force = True
     elif type is None:
         classes = types.values()
+        force = False
     else:
         raise Exception('invalid type specified')
 
     for c in classes:
-        obj = c.try_to_construct(key)
+        obj = c.try_to_construct(key, force=force)
         if obj:
             return obj
 
