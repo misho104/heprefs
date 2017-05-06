@@ -17,7 +17,7 @@ def normalize_authors(json):
     authors_normal = list()
     collaborations_mode = False
     for i in authors:
-        if i is None or 'full_name' not in i:
+        if i is None or not i.get('full_name'):  # 'full_name' might be None.
             continue
 
         if re.search(r'on behalf', i['full_name'], flags=re.IGNORECASE):
