@@ -9,7 +9,7 @@ from heprefs.cds_article import CDSArticle
 from heprefs.inspire_article import InspireArticle
 
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 types = OrderedDict([
     ('arxiv', ArxivArticle),
     ('cds', CDSArticle),
@@ -95,6 +95,16 @@ def pdf(article):
     url = article.pdf_url()
     click.echo("Opening {} ...".format(url))
     click.launch(url)
+
+
+@heprefs_subcommand(help_msg='display short information of the article')
+@with_article
+def short_info(article):
+    click.echo(u"{authors}\n{title}\n{abs_url}".format(
+        authors=article.authors(),
+        title=article.title(),
+        abs_url=article.abs_url(),
+    ))
 
 
 @heprefs_subcommand(help_msg='Download PDF file')
