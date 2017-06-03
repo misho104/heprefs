@@ -36,7 +36,8 @@ def construct_article(key, type=None):
     sys.exit(1)
 
 
-@click.group(help='Handle the references for high-energy physics')
+@click.group(help='Handle the references for high-energy physics',
+             context_settings=dict(help_option_names=['-h', '--help']))
 @click.version_option(__version__, '-V', '--version')
 # @click.option('-v', '--verbose', is_flag=True, default=False, help="Show verbose output")
 def heprefs_main(**args):
