@@ -71,6 +71,7 @@ $ heprefs get -o "fin a Giudice"       # open the PDF file
 $ heprefs authors 1505.02996
 $ heprefs first_author hep-th/9711200
 $ heprefs title 10.1038/nphys3005
+$ heprefs short_info ATLAS-CONF-2017-018
 ```
 
 
@@ -78,15 +79,15 @@ $ heprefs title 10.1038/nphys3005
 
 #### Specify search engine
 
-There are three classes: arXiv, inspireHEP, and CDS. They are automatically guessed, but you can specify the class:
+There are three **types**: arXiv, inspireHEP, and CDS. They are automatically guessed, but you can specify a type:
 
 ```console
 $ heprefs abs -t arxiv 1505.02996           # arXiv
 $ heprefs abs -t cds   "top asymmetry"      # CDS
 $ heprefs abs -t ins   "top asymmetry"      # inspireHEP
 
-$ heprefs abs        ATLAS-CONF-2017-018  # guessed as CDS search
-$ heprefs abs -t ins ATLAS-CONF-2017-018  # forced to use inspireHEP
+$ heprefs abs        ATLAS-CONF-2017-018    # guessed as CDS search
+$ heprefs abs -t ins ATLAS-CONF-2017-018    # forced to use inspireHEP
 ```
 
 #### Commands are too long?
@@ -102,6 +103,11 @@ alias xget='heprefs get'
 (You may want to use inspire search as well, though this is not a feature of this software.)
 
 ```:.zshrc
+function browser() {
+  google-chrome $* &             # on Linux
+  # open $* -a Google\ Chrome    # on macOS
+}
+
 function fin() {
   local query; if [ $# != 0 ]; then; for i in $*; do; query="$query+$i"; done; fi
   query=`echo $query | sed 's/^\+//'`
