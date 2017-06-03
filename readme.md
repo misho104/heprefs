@@ -18,10 +18,11 @@ Collecting git+https://github.com/misho104/heprefs.git
 Successfully installed arxiv-0.1.1 click-6.7 feedparser-5.2.1 heprefs-0.1.0 requests-2.13.0
 ```
 
-or you can install specific version (e.g. @v0.1.0) by
+or you can install specific version by, e.g.,
 
 ```console
-$ pip install git+https://github.com/misho104/heprefs.git@v0.1.0
+$ pip install git+https://github.com/misho104/heprefs.git@v0.1.0       # for v0.1.0
+$ pip install git+https://github.com/misho104/heprefs.git@development  # for development version
 ```
 
 #### Upgrade
