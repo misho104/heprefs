@@ -86,6 +86,9 @@ class ArxivArticle(object):
     def pdf_url(self):
         return '{}/pdf/{}'.format(self.SERVER, self.arxiv_id)
 
+    def source_url(self):
+        return '{}/e-print/{}'.format(self.SERVER, self.arxiv_id)
+
     def title(self):
         return self.info['title']
 

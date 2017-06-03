@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import, division, print_function
 import click
-import sys, re
+import os, sys, re, tarfile
 from collections import OrderedDict
 from heprefs.arxiv_article import ArxivArticle
 from heprefs.cds_article import CDSArticle
@@ -125,6 +125,46 @@ def get(article, open):
             request.urlretrieve(pdf_url, filename, reporthook=lambda b, c, t: bar.update(c/t))
     if open:
         click.launch(filename)
+
+
+@heprefs_subcommand(help_msg='Download arXiv source file')
+@click.option('-u', '--untar', is_flag=True, default=False, help="Untar downloaded file")
+@with_article
+def source(article, untar):
+    if isinstance(article, ArxivArticle):
+        url = article.source_url()
+        filename = '{}.tar.gz'.format(article.arxiv_id)
+        dirname = '{}.source'.format(article.arxiv_id)
+    else:
+        click.echo('`source` is available only for arXiv articles.')
+        sys.exit(1)
+
+    filename = re.sub(r'[\\/*?:"<>|]', '', filename)
+    click.echo("Downloading {} ...".format(url))
+
+    with click.progressbar(length=1, label=filename) as bar:
+        try:
+            import urllib
+            urllib.urlretrieve(url, filename, reporthook=lambda b, c, t: bar.update(c/t))
+        except AttributeError:
+            from urllib import request
+            request.urlretrieve(url, filename, reporthook=lambda b, c, t: bar.update(c/t))
+
+    if not os.path.isfile(filename):
+        click.echo('Download failed and file {} is not created.'.format(filename))
+        sys.exit(1)
+
+    if untar:
+        if tarfile.is_tarfile(filename):
+            with tarfile.open(filename) as f:
+                f.list()
+                f.extractall(path=dirname)
+
+            click.echo('\n{filename} successfully extracted to {dirname}.'.format(filename=filename, dirname=dirname))
+        else:
+            click.echo("""
+{filename} has been downloaded but seems not a TAR file.
+Execute `gunzip {filename}` and inspect the file.""".format(filename=filename))
 
 
 @heprefs_subcommand(help_msg='display information')
