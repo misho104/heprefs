@@ -9,7 +9,7 @@ from heprefs.cds_article import CDSArticle
 from heprefs.inspire_article import InspireArticle
 
 
-__version__ = "0.1.1"
+__version__ = '0.1.2'
 types = OrderedDict([
     ('arxiv', ArxivArticle),
     ('cds', CDSArticle),
