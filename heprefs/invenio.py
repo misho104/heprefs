@@ -104,8 +104,14 @@ def shorten_authors_text(json):
 
 def publication_info_text(json):
     # type: (dict) -> str
-    if json.get('publication_info'):
-        items = [json['publication_info'].get(key, '') for key in ['title', 'volume', 'year', 'pagination']]
+    publication_info = json.get('publication_info')
+    if publication_info:
+        if isinstance(publication_info, list):
+            publication_info = publication_info[0]
+            print(u'More than one publication_info is found; first one is used.')
+        if not isinstance(publication_info, dict):
+            raise ValueError('publication_list is not a JSON hash.')
+        items = [publication_info.get(key, '') for key in ['title', 'volume', 'year', 'pagination']]
         if items[2]:
             items[2] = '(' + items[2] + ')'
             items = [i for i in items if i]
@@ -141,16 +147,17 @@ def arxiv_id(json):
 
 def primary_report_number(json):
     # type: (dict) -> str
-    if 'primary_report_number' not in json:
-        return ''
+    content = ''
+    if json.get('primary_report_number') is None:
+        pass
     elif isinstance(json['primary_report_number'], str):
-        return json['primary_report_number']
+        content = json['primary_report_number']
     elif isinstance(json['primary_report_number'], list):
         if arxiv_id(json):
-            return arxiv_id(json)
+            content = arxiv_id(json)
         else:
-            return json['primary_report_number'][0]
-    elif json['primary_report_number'] is None:
-        return ''
+            content = json['primary_report_number'][0]
     else:
         raise ValueError('primary_report_number is in unknown format: ' + json['primary_report_number'].__str__())
+    content = re.sub(r'^arXiv:', '', content, re.IGNORECASE)
+    return content
