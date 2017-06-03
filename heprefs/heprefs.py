@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import, division, print_function
 import click
-import sys
+import sys, re
 from collections import OrderedDict
 from heprefs.arxiv_article import ArxivArticle
 from heprefs.cds_article import CDSArticle
@@ -113,6 +113,7 @@ def short_info(article):
 @with_article
 def get(article, open):
     (pdf_url, filename) = article.download_parameters()
+    filename = re.sub(r'[\\/*?:"<>|]', '', filename)
     click.echo("Downloading {} ...".format(pdf_url))
 
     with click.progressbar(length=1, label=filename) as bar:
