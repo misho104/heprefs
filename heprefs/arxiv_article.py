@@ -100,7 +100,7 @@ class ArxivArticle(object):
 
     def authors_short(self):
         authors = [self.shorten_author(a) for a in self.info['authors']]
-        if len(authors) > 4:
+        if len(authors) > 5:
             authors = authors[0:4] + ['etal']
         return '-'.join(authors)
 

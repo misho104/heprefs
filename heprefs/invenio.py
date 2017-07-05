@@ -97,7 +97,7 @@ def shorten_authors_text(json):
         return '-'.join(collaborations_list)
 
     authors_short = shorten_authors(json)
-    if len(authors_short) > 4:
+    if len(authors_short) > 5:
         authors_short.append('etal')
     return '-'.join(authors_short)
 
