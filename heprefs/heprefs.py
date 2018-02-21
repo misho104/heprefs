@@ -114,7 +114,7 @@ def short_info(article):
     ))
 
 
-@heprefs_subcommand(help_msg='Download PDF file')
+@heprefs_subcommand(help_msg='Download PDF file and display the filename')
 @click.option('-o', '--open', is_flag=True, default=False, help="Open PDF file by viewer")
 @with_article
 def get(article, open):
@@ -129,11 +129,13 @@ def get(article, open):
         except AttributeError:
             from urllib import request
             request.urlretrieve(pdf_url, filename, reporthook=lambda b, c, t: bar.update(c/t))
+    # display the name so that piped to other scripts
+    click.echo(filename)
     if open:
         click.launch(filename)
 
 
-@heprefs_subcommand(help_msg='Download arXiv source file')
+@heprefs_subcommand(help_msg='Download arXiv source file display the filename')
 @click.option('-u', '--untar', is_flag=True, default=False, help="Untar downloaded file")
 @with_article
 def source(article, untar):
@@ -171,7 +173,8 @@ def source(article, untar):
             click.echo("""
 {filename} has been downloaded but seems not a TAR file.
 Execute `gunzip {filename}` and inspect the file.""".format(filename=filename), err=True)
-
+    # display the name so that piped to other scripts
+    click.echo(filename)
 
 @heprefs_subcommand(help_msg='display information')
 @with_article
