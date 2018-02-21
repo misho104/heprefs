@@ -1,8 +1,11 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import re
+import os
 import arxiv
 import feedparser
+from logging import getLogger
 
+logger = getLogger(__name__)
 
 class ArxivArticle(object):
     SERVER = 'https://arxiv.org'
@@ -22,11 +25,11 @@ class ArxivArticle(object):
            or 'id' not in results['entries'][0]:  # because arXiv api returns one blank entry even if nothing found
             raise Exception('arXiv:{} not found'.format(arxiv_id))
         elif len(results['entries']) > 1:
-            print('Warning: more than one entries are found, whose titles are')
+            warning_text = 'more than one entries are found, whose titles are' + os.linesep
             for i in results:
                 title = i.get('title', dict()).get('title') or 'unknown ' + i.get('primary_report_number')
-                print('    ' + title)
-            print()
+                warning_text += '    ' + title + os.linesep
+            logger.warning(warning_text)
 
         result = results['entries'][0]
         arxiv.mod_query_result(result)

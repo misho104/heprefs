@@ -1,14 +1,17 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import re
-import sys
+import os
 import json
 import heprefs.invenio as invenio
+from logging import getLogger
 try:
     from urllib import quote_plus
     from urllib2 import urlopen, Request, HTTPError
 except ImportError:
     from urllib.parse import quote_plus
     from urllib.request import urlopen, Request
+
+logger = getLogger(__name__)
 
 
 class CDSArticle(object):
@@ -39,11 +42,11 @@ class CDSArticle(object):
         if (not isinstance(results, list)) or len(results) == 0:
             raise Exception('query {} to CDS gives no result: '.format(query))
         if len(results) > 1:
-            print('Warning: more than one entries are found, whose titles are')
+            warning_text = 'more than one entries are found, whose titles are' + os.linesep
             for i in results:
                 title = i.get('title', dict()).get('title') or 'unknown ' + i.get('primary_report_number')
-                print('    ' + title)
-            print()
+                warning_text += '    ' + title + os.linesep
+            logger.warning(warning_text)
 
         result = results[0]
 

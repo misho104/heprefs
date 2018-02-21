@@ -3,13 +3,19 @@
 from __future__ import absolute_import, division, print_function
 import click
 import os, sys, re, tarfile
+from logging import basicConfig, getLogger, DEBUG
 from collections import OrderedDict
-from heprefs.arxiv_article import ArxivArticle
-from heprefs.cds_article import CDSArticle
-from heprefs.inspire_article import InspireArticle
+from .arxiv_article import ArxivArticle
+from .cds_article import CDSArticle
+from .inspire_article import InspireArticle
 
-
+__author__ = 'Sho Iwamoto / Misho'
 __version__ = '0.1.2'
+__license__ = "MIT"
+
+basicConfig(level=DEBUG)
+logger = getLogger(__name__)
+
 types = OrderedDict([
     ('arxiv', ArxivArticle),
     ('cds', CDSArticle),
@@ -32,7 +38,7 @@ def construct_article(key, type=None):
         if obj:
             return obj
 
-    click.echo('Reference for {} not found.'.format(key))
+    click.echo('Reference for {} not found.'.format(key), err=True)
     sys.exit(1)
 
 
@@ -86,7 +92,7 @@ def first_author(article):
 @with_article
 def abs(article):
     url = article.abs_url()
-    click.echo("Opening {} ...".format(url))
+    click.echo("Opening {} ...".format(url), err=True)
     click.launch(url)
 
 
@@ -94,7 +100,7 @@ def abs(article):
 @with_article
 def pdf(article):
     url = article.pdf_url()
-    click.echo("Opening {} ...".format(url))
+    click.echo("Opening {} ...".format(url), err=True)
     click.launch(url)
 
 
@@ -114,9 +120,9 @@ def short_info(article):
 def get(article, open):
     (pdf_url, filename) = article.download_parameters()
     filename = re.sub(r'[\\/*?:"<>|]', '', filename)
-    click.echo("Downloading {} ...".format(pdf_url))
+    click.echo("Downloading {} ...".format(pdf_url), err=True)
 
-    with click.progressbar(length=1, label=filename) as bar:
+    with click.progressbar(length=1, label=filename, file=sys.stderr) as bar:
         try:
             import urllib
             urllib.urlretrieve(pdf_url, filename, reporthook=lambda b, c, t: bar.update(c/t))
@@ -136,13 +142,13 @@ def source(article, untar):
         filename = '{}.tar.gz'.format(article.arxiv_id)
         dirname = '{}.source'.format(article.arxiv_id)
     else:
-        click.echo('`source` is available only for arXiv articles.')
+        click.echo('`source` is available only for arXiv articles.', err=True)
         sys.exit(1)
 
     filename = re.sub(r'[\\/*?:"<>|]', '', filename)
-    click.echo("Downloading {} ...".format(url))
+    click.echo("Downloading {} ...".format(url), err=True)
 
-    with click.progressbar(length=1, label=filename) as bar:
+    with click.progressbar(length=1, label=filename, file=sys.stderr) as bar:
         try:
             import urllib
             urllib.urlretrieve(url, filename, reporthook=lambda b, c, t: bar.update(c/t))
@@ -151,7 +157,7 @@ def source(article, untar):
             request.urlretrieve(url, filename, reporthook=lambda b, c, t: bar.update(c/t))
 
     if not os.path.isfile(filename):
-        click.echo('Download failed and file {} is not created.'.format(filename))
+        click.echo('Download failed and file {} is not created.'.format(filename), err=True)
         sys.exit(1)
 
     if untar:
@@ -160,11 +166,11 @@ def source(article, untar):
                 f.list()
                 f.extractall(path=dirname)
 
-            click.echo('\n{filename} successfully extracted to {dirname}.'.format(filename=filename, dirname=dirname))
+            click.echo('\n{filename} successfully extracted to {dirname}.'.format(filename=filename, dirname=dirname), err=True)
         else:
             click.echo("""
 {filename} has been downloaded but seems not a TAR file.
-Execute `gunzip {filename}` and inspect the file.""".format(filename=filename))
+Execute `gunzip {filename}` and inspect the file.""".format(filename=filename), err=True)
 
 
 @heprefs_subcommand(help_msg='display information')

@@ -6,6 +6,8 @@ import re
 import sys
 if sys.version_info[0] < 3:
     str = basestring
+from logging import getLogger
+logger = getLogger(__name__)
 
 
 def normalize_authors(json):
@@ -43,7 +45,7 @@ def flatten_author(a):
     elif a.get('full_name'):
         return a['full_name'] or ''
     else:
-        print(u'Note: how to handle the author name?: {}'.format(a.__str__()))
+        logger.warning(u'how to handle the author name?: {}'.format(a.__str__()))
         return ''
 
 
@@ -60,7 +62,7 @@ def shorten_author(a):
         tmp = re.sub(r'on behalf of.*', '', a['full_name'], flags=re.IGNORECASE)
         return re.split(r', ', tmp)[0].replace('-', '')
     else:
-        print(u'Note: how to handle the author name?: {}'.format(a.__str__()))
+        logger.warning(u'how to handle the author name?: {}'.format(a.__str__()))
         return ''
 
 
@@ -108,7 +110,7 @@ def publication_info_text(json):
     if publication_info:
         if isinstance(publication_info, list):
             publication_info = publication_info[0]
-            print(u'More than one publication_info is found; first one is used.')
+            logger.warning(u'More than one publication_info is found; first one is used.')
         if not isinstance(publication_info, dict):
             raise ValueError('publication_list is not a JSON hash.')
         items = [publication_info.get(key, '') for key in ['title', 'volume', 'year', 'pagination']]
@@ -141,7 +143,7 @@ def arxiv_id(json):
         if arxiv_pattern:
             arxiv_ids.append(arxiv_pattern.group(1))
     if len(arxiv_ids) > 1:
-        print('Note: multiple arxiv IDs are found? : ' + ' & '.join(arxiv_ids))
+        logger.warning('multiple arxiv IDs are found? : ' + ' & '.join(arxiv_ids))
     return arxiv_ids[0] if arxiv_ids else ''
 
 

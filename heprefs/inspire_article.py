@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import re
-import sys
+import os
+from logging import getLogger
 import json
 import heprefs.invenio as invenio
 try:
@@ -9,6 +10,8 @@ try:
 except ImportError:
     from urllib.parse import quote_plus
     from urllib.request import urlopen, Request
+
+logger = getLogger(__name__)
 
 
 class InspireArticle(object):
@@ -40,11 +43,11 @@ class InspireArticle(object):
         if (not isinstance(results, list)) or len(results) == 0:
             raise Exception('query {} to inspireHEP gives no result: '.format(query))
         if len(results) > 1:
-            print('Warning: more than one entries are found, whose titles are')
+            warning_text = 'more than one entries are found, whose titles are' + os.linesep
             for i in results:
                 title = i.get('title', dict()).get('title') or 'unknown ' + i.get('primary_report_number')
-                print('    ' + title)
-            print()
+                warning_text += '    ' + title + os.linesep
+            logger.warning(warning_text)
 
         result = results[0]
         return result
@@ -98,7 +101,7 @@ class InspireArticle(object):
         pdf_files = [i for i in self.info.get('files', []) if i['superformat'] == '.pdf']
         if pdf_files:
             if len(pdf_files) > 1:
-                print('Note: Fulltext PDF file is guessed by its size.')
+                logger.warning('Fulltext PDF file is guessed by its size.')
             pdf_files.sort(key=lambda i: int(i.get('size', 0)), reverse=True)
             return pdf_files[0].get('url', '')
 
@@ -129,7 +132,7 @@ class InspireArticle(object):
                 scn = [scn]
             texkeys = [i['value'] for i in scn if i['institute'] == 'INSPIRETeX']
             if len(texkeys) > 1:
-                print('Note: multiple TeXkeys are found? : ' + ' & '.join(texkeys))
+                logger.warning('multiple TeXkeys are found? : ' + ' & '.join(texkeys))
             return texkeys[0] if texkeys else ''
         return ''
 
@@ -167,4 +170,4 @@ class InspireArticle(object):
             '(collaborations)': invenio.collaborations(self.info)
         }
         for k, v in data.items():
-            print('{}: {}'.format(k, v))
+            logger.debug('{}: {}'.format(k, v))
