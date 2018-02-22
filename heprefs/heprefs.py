@@ -10,7 +10,7 @@ from .cds_article import CDSArticle
 from .inspire_article import InspireArticle
 
 __author__ = 'Sho Iwamoto / Misho'
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 __license__ = "MIT"
 
 basicConfig(level=DEBUG)
