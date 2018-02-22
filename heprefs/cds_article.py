@@ -23,7 +23,7 @@ class CDSArticle(object):
                "authors,corporate_name,title,abstract,publication_info,files"
 
     LIKELY_PATTERNS = [
-        r'^[A-Za-z-]+-\d{4}-\d{3}$',
+        r'^[A-Za-z-]+-\d+-\d+$',   # "ATLAS-CONF-2018-001" "CMS PAS EXO-16-009"
     ]
 
     @classmethod
@@ -38,7 +38,7 @@ class CDSArticle(object):
         try:
             results = json.loads(s.decode("utf-8"))
         except Exception as e:
-            raise Exception('parse failed; query {} to CDS gives no result?: '.format(query) + e.__str__())
+            raise Exception('parse failed; query {} to CDS, but seems no result.: '.format(query) + e.__str__())
         if (not isinstance(results, list)) or len(results) == 0:
             raise Exception('query {} to CDS gives no result: '.format(query))
         if len(results) > 1:
