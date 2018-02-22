@@ -1,11 +1,22 @@
 heprefs: CLI for high-energy physics references
 ===============================================
 
+![screen shot](https://user-images.githubusercontent.com/776101/36547606-8aa5d438-17ee-11e8-9ddb-64a5a4e7d2f5.gif)
+
+Do you think the commands are too long? Simply configure your shell by editing  `.zshrc`; for example,
+
+```:.zshrc
+function xa()      { if [ $# != 0 ]; then for i in $*; do heprefs abs $i; done; fi }
+function xx()      { if [ $# != 0 ]; then for i in $*; do heprefs pdf $i; done; fi }
+function xget()    { if [ $# != 0 ]; then for i in $*; do heprefs get -o $i; done; fi }
+function xsource() { if [ $# != 0 ]; then for i in $*; do heprefs source -u $i; done; fi }
+```
+
+(or see below) and you will just type `xget 1802.07720 1708.00283` etc. to download multiple PDFs!
+
 ### Set up
 
-#### Environment
-
-Python 2 or 3
+For Python 2 or 3.
 
 #### Install
 
@@ -100,6 +111,17 @@ alias xa='heprefs abs'
 alias xx='heprefs pdf'
 alias xget='heprefs get'
 ```
+
+or if you want to handle multiple arguments,
+
+```:.zshrc
+function xa()      { if [ $# != 0 ]; then for i in $*; do heprefs abs $i; done; fi }
+function xx()      { if [ $# != 0 ]; then for i in $*; do heprefs pdf $i; done; fi }
+function xget()    { if [ $# != 0 ]; then for i in $*; do heprefs get -o $i; done; fi }
+function xsource() { if [ $# != 0 ]; then for i in $*; do heprefs source -u $i; done; fi }
+```
+
+
 
 (You may want to use inspire search as well, though this is not a feature of this software.)
 

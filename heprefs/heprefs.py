@@ -51,7 +51,7 @@ def heprefs_main(**args):
 
 
 def heprefs_subcommand(help_msg):
-    d1 = heprefs_main.command(help=help_msg)
+    d1 = heprefs_main.command(short_help=help_msg, help=help_msg)
     d2 = click.option('-t', '--type',
                       type=click.Choice(types.keys()),
                       help="Specify article type (guessed if unspecified)")
@@ -135,7 +135,7 @@ def get(article, open):
         click.launch(filename)
 
 
-@heprefs_subcommand(help_msg='Download arXiv source file display the filename')
+@heprefs_subcommand(help_msg='Download arXiv source file and display the filename')
 @click.option('-u', '--untar', is_flag=True, default=False, help="Untar downloaded file")
 @with_article
 def source(article, untar):
