@@ -93,7 +93,7 @@ class ArxivArticle(object):
         return '{}/e-print/{}'.format(self.SERVER, self.arxiv_id)
 
     def title(self):
-        return self.info['title']
+        return re.sub(r'\s+', ' ', self.info['title'])
 
     def authors(self):
         return ', '.join(self.info['authors'])

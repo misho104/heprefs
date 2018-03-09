@@ -109,7 +109,7 @@ class InspireArticle(object):
 
     def title(self):
         # type: () -> str
-        return invenio.title(self.info)
+        return re.sub(r'\s+', ' ', invenio.title(self.info))
 
     def authors(self):
         # type: () -> str
