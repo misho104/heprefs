@@ -96,12 +96,12 @@ def shorten_authors_text(json):
     # type: (dict) -> str
     collaborations_list = collaborations(json)
     if collaborations_list:
-        return '-'.join(collaborations_list)
+        return '\, '.join(collaborations_list)
 
     authors_short = shorten_authors(json)
     if len(authors_short) > 5:
-        authors_short.append('etal')
-    return '-'.join(authors_short)
+        authors_short.append('et al.')
+    return '\, '.join(authors_short)
 
 
 def publication_info_text(json):

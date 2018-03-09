@@ -53,11 +53,6 @@ class CDSArticle(object):
         return result
 
     @classmethod
-    def shorten_author(cls, author):
-        family_name = author['last_name']
-        return family_name.replace('-', '')
-
-    @classmethod
     def try_to_construct(cls, query, force=False):
         if not force:
             if not any(re.match(r, query) for r in cls.LIKELY_PATTERNS):
@@ -115,6 +110,10 @@ class CDSArticle(object):
         else:
             return ', '.join(invenio.flatten_authors(self.info))
 
+    def authors_short(self):
+        # type: () -> str
+        return invenio.shorten_authors_text(self.info)
+
     def first_author(self):
         # type: () -> str
         a = self.authors()
@@ -138,7 +137,8 @@ class CDSArticle(object):
             self.info['doi'] if 'doi' in self.info else \
             'unknown'
 
-        filename = '{title}-{names}.pdf'.format(title=file_title, names=invenio.shorten_authors_text(self.info))
+        names = invenio.shorten_authors_text(self.info).replace(', ', '-').replace('et al.', 'etal')
+        filename = '{title}-{names}.pdf'.format(title=file_title, names=names)
         return url, filename
 
     def debug(self):

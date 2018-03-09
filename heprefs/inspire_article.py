@@ -53,11 +53,6 @@ class InspireArticle(object):
         return result
 
     @classmethod
-    def shorten_author(cls, author):
-        family_name = author['last_name']
-        return family_name.replace('-', '')
-
-    @classmethod
     def try_to_construct(cls, query, force=False):
         if not force:
             if not any(re.match(r, query) for r in cls.LIKELY_PATTERNS):
@@ -119,6 +114,10 @@ class InspireArticle(object):
         else:
             return ', '.join(invenio.flatten_authors(self.info))
 
+    def authors_short(self):
+        # type: () -> str
+        return invenio.shorten_authors_text(self.info)
+
     def first_author(self):
         # type: () -> str
         a = self.authors()
@@ -153,8 +152,9 @@ class InspireArticle(object):
             primary_report_number if primary_report_number else \
             self.info['doi'] if 'doi' in self.info else \
             'unknown'
+        names = invenio.shorten_authors_text(self.info).replace(', ', '-').replace('et al.', 'etal')
 
-        filename = '{title}-{names}.pdf'.format(title=file_title, names=invenio.shorten_authors_text(self.info))
+        filename = '{title}-{names}.pdf'.format(title=file_title, names=names)
         return url, filename
 
     def debug(self):

@@ -104,11 +104,12 @@ class ArxivArticle(object):
     def authors_short(self):
         authors = [self.shorten_author(a) for a in self.info['authors']]
         if len(authors) > 5:
-            authors = authors[0:4] + ['etal']
-        return '-'.join(authors)
+            authors = authors[0:4] + ['et al.']
+        return ', '.join(authors)
 
     def download_parameters(self):
-        filename = '{id}-{authors}.pdf'.format(id=self.arxiv_id, authors=self.authors_short())
+        authors = self.authors_short().replace(', ', '-').replace('et al.', 'etal')
+        filename = '{id}-{authors}.pdf'.format(id=self.arxiv_id, authors=authors)
         return self.info['pdf_url'], filename
 
     def debug(self):

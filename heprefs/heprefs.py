@@ -105,10 +105,12 @@ def pdf(article):
 
 
 @heprefs_subcommand(help_msg='display short information of the article')
+@click.option('-s', '--shortauthors', is_flag=True, default=False, help="Shorten authors")
 @with_article
-def short_info(article):
+def short_info(article, shortauthors):
+    authors = article.authors_short() if shortauthors else article.authors()
     click.echo(u"{authors}\n{title}\n{abs_url}".format(
-        authors=article.authors(),
+        authors=authors,
         title=article.title(),
         abs_url=article.abs_url(),
     ))
