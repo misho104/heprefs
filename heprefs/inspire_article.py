@@ -2,14 +2,15 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import re
 import os
 from logging import getLogger
+from typing import Tuple  # noqa: F401
 import json
 import heprefs.invenio as invenio
 try:
-    from urllib import quote_plus
-    from urllib2 import urlopen, Request, HTTPError
+    from urllib import quote_plus            # type: ignore  # noqa
+    from urllib2 import urlopen, HTTPError   # type: ignore  # noqa
 except ImportError:
     from urllib.parse import quote_plus
-    from urllib.request import urlopen, Request
+    from urllib.request import urlopen
 
 logger = getLogger(__name__)
 
@@ -19,8 +20,8 @@ class InspireArticle(object):
     RECORD_PATH = 'http://inspirehep.net/record/'
     ARXIV_SERVER = 'https://arxiv.org'
     DOI_SERVER = 'https://dx.doi.org'
-    DATA_KEY = "primary_report_number,recid,system_control_number," + \
-               "authors,corporate_name,title,abstract,publication_info,files"
+    DATA_KEY = 'primary_report_number,recid,system_control_number,' + \
+               'authors,corporate_name,title,abstract,publication_info,files'
 
     LIKELY_PATTERNS = [
         r'^(doi:)?10\.\d{4,}/.*$',  # doi
@@ -35,9 +36,9 @@ class InspireArticle(object):
             s = f.read()
             f.close()
         except HTTPError as e:
-            raise Exception("Failed to fetch inspireHEP information: " + e.__str__())
+            raise Exception('Failed to fetch inspireHEP information: ' + e.__str__())
         try:
-            results = json.loads(s.decode("utf-8"))
+            results = json.loads(s.decode('utf-8'))
         except Exception as e:
             raise Exception('parse failed; query {} to inspireHEP gives no result?: '.format(query) + e.__str__())
         if (not isinstance(results, list)) or len(results) == 0:
@@ -131,7 +132,7 @@ class InspireArticle(object):
                 scn = [scn]
             texkeys = [i['value'] for i in scn if i['institute'] == 'INSPIRETeX']
             if len(texkeys) > 1:
-                logger.warning('multiple TeXkeys are found? : ' + ' & '.join(texkeys))
+                logger.warning('multiple TeX-keys are found? : ' + ' & '.join(texkeys))
             return texkeys[0] if texkeys else ''
         return ''
 
@@ -140,10 +141,10 @@ class InspireArticle(object):
         return invenio.publication_info_text(self.info)
 
     def download_parameters(self):
-        # type: () -> (str, str)
+        # type: () -> Tuple[str, str]
         url = self.pdf_url()
         if not url:
-            return ''
+            return '', ''
 
         arxiv_id = invenio.arxiv_id(self.info)
         primary_report_number = invenio.primary_report_number(self.info)

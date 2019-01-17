@@ -1,12 +1,15 @@
+from logging import getLogger
+from typing import List, Mapping      # noqa: F401
+import re
+import sys
+
 """
     Utilities to handle JSON output from INVENIO system (inspireHEP/CDS).
 """
 
-import re
-import sys
+
 if sys.version_info[0] < 3:
-    str = basestring
-from logging import getLogger
+    str = basestring            # noqa: F821
 logger = getLogger(__name__)
 
 
@@ -16,16 +19,16 @@ def normalize_authors(json):
     if not isinstance(authors, list):
         authors = [authors]
 
-    authors_normal = list()
+    authors_normal = list()      # type: List[Mapping[str, str]]
     collaborations_mode = False
     for i in authors:
         if i is None or not i.get('full_name'):  # 'full_name' might be None.
             continue
 
-        if re.search(r'on behalf', i['full_name'], flags=re.IGNORECASE):
+        if re.search('on behalf', i['full_name'], flags=re.IGNORECASE):
             break  # anything after 'on behalf of' is ignored.
 
-        if re.search(r'collaborations ', i['full_name'], flags=re.IGNORECASE):
+        if re.search('collaborations ', i['full_name'], flags=re.IGNORECASE):
             # if no personal name is given, list collaboration names only
             if len(authors_normal) == 0:
                 collaborations_mode = True
@@ -59,7 +62,7 @@ def shorten_author(a):
     if a.get('last_name'):
         return a['last_name'].replace('-', '').replace(' ', '')
     elif a.get('full_name'):
-        tmp = re.sub(r'on behalf of.*', '', a['full_name'], flags=re.IGNORECASE)
+        tmp = re.sub('on behalf of.*', '', a['full_name'], flags=re.IGNORECASE)
         return re.split(r', ', tmp)[0].replace('-', '')
     else:
         logger.warning(u'how to handle the author name?: {}'.format(a.__str__()))
@@ -81,8 +84,8 @@ def collaborations(json):
     for i in corporate_name:
         for k, v in i.items():
             if k == 'collaboration' or k == 'name':
-                v = re.sub(r'the', '', v, flags=re.IGNORECASE)
-                v = re.sub(r'collaboration', '', v, flags=re.IGNORECASE)
+                v = re.sub('the', '', v, flags=re.IGNORECASE)
+                v = re.sub('collaboration', '', v, flags=re.IGNORECASE)
                 collaborations_list.append(v.strip())
 
     # remove duplicated entries (case insensitive)
@@ -96,12 +99,12 @@ def shorten_authors_text(json):
     # type: (dict) -> str
     collaborations_list = collaborations(json)
     if collaborations_list:
-        return '\, '.join(collaborations_list)
+        return ', '.join(collaborations_list)
 
     authors_short = shorten_authors(json)
     if len(authors_short) > 5:
         authors_short.append('et al.')
-    return '\, '.join(authors_short)
+    return ', '.join(authors_short)
 
 
 def publication_info_text(json):
