@@ -21,12 +21,7 @@ For Python 2 or 3.
 #### Install
 
 ```console
-$ pip install git+https://github.com/misho104/heprefs.git
-
-Collecting git+https://github.com/misho104/heprefs.git
-  Cloning https://github.com/misho104/heprefs.git to /private/tmp/pip-wjd8srsu-build
-...
-Successfully installed arxiv-0.1.1 click-6.7 feedparser-5.2.1 heprefs-0.1.0 requests-2.13.0
+$ pip install heprefs
 ```
 
 or you can install specific version by, e.g.,
@@ -39,7 +34,7 @@ $ pip install git+https://github.com/misho104/heprefs.git@development  # for dev
 #### Upgrade
 
 ```console
-$ pip install git+https://github.com/misho104/heprefs.git --upgrade
+$ pip install --upgrade heprefs
 ```
 
 #### Uninstall
