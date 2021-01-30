@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "heprefs"
-version = "0.1.4"
+version = "0.1.5"
 description = "A commandline helper tool for high-energy physics referencing."
 authors = ["Sho Iwamoto (Misho) <webmaster@misho-web.com>"]
 license = "MIT"
