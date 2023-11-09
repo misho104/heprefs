@@ -11,7 +11,7 @@ repository = "https://github.com/misho104/heprefs"
 python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 typing = {version = "^3.6", python = "<3.5"}
 click = "^8.0"
-arxiv = "^0.3.1"
+arxiv = "^2.0"
 feedparser = "^6.0"
 
 [tool.poetry.dev-dependencies]
