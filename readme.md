@@ -16,7 +16,7 @@ function xsource() { if [ $# != 0 ]; then for i in $*; do heprefs source -u $i; 
 
 ### Set up
 
-For Python 2 or 3.
+For Python 3.10 or later.
 
 #### Install
 
