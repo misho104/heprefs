@@ -9,8 +9,8 @@ license = "MIT"
 readme = "readme.md"
 requires-python = ">=3.10"
 dependencies = [
-    "click>=8.0,<9",
-    "arxiv>=2.0,<3",
+    "click>=8.5,<9",
+    "arxiv>=4.0,<5",
     "feedparser>=6.0,<7",
 ]
 
@@ -22,7 +22,7 @@ heprefs = "heprefs.heprefs:heprefs_main"
 
 [dependency-groups]
 dev = [
-    "mypy>=1.0",
+    "mypy>=2.3",
     "flake8>=7.0",
 ]
 
