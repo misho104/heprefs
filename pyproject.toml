@@ -23,7 +23,7 @@ heprefs = "heprefs.heprefs:heprefs_main"
 [dependency-groups]
 dev = [
     "mypy>=2.3",
-    "flake8>=7.0",
+    "ruff>=0.16.8",
 ]
 
 [build-system]
@@ -32,3 +32,10 @@ build-backend = "uv_build"
 
 [tool.uv.build-backend]
 module-root = ""
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]  # flake8相当 + isort + bugbear + pyupgrade
