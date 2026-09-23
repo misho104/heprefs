@@ -4,6 +4,7 @@ import os
 import arxiv
 import feedparser
 import urllib
+import urllib.parse
 from logging import getLogger
 
 logger = getLogger(__name__)
